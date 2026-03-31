@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Gesture Navi",
+  "short_name": "Gesture Navi",
+  "version": "0.1.0",
+  "description": "Webカメラの4方向スワイプでChromeブラウジング操作を補助する拡張機能",
+  "minimum_chrome_version": "120",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Gesture Ops"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/wasm/*", "assets/models/*"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}
