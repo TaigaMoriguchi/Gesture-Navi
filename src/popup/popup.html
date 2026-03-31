@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gesture Ops</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --sub: #6b7280;
+        --line: #d8dee7;
+        --accent: #0a7a5a;
+        --accent-off: #5b6778;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 340px;
+        max-height: 640px;
+        overflow-y: auto;
+        background: var(--bg);
+        color: var(--text);
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      .wrap {
+        padding: 14px;
+      }
+
+      .title {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 10px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 11px;
+      }
+
+      .card + .card {
+        margin-top: 10px;
+      }
+
+      .section-title {
+        margin: 0 0 8px;
+        font-size: 12px;
+        color: var(--sub);
+        font-weight: 700;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 6px 0;
+      }
+
+      .row .label {
+        color: var(--sub);
+      }
+
+      .value {
+        font-weight: 600;
+        text-align: right;
+      }
+
+      #toggleButton {
+        width: 100%;
+        margin-top: 10px;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #fff;
+        font-weight: 700;
+        background: var(--accent-off);
+        cursor: pointer;
+      }
+
+      #toggleButton.on {
+        background: var(--accent);
+      }
+
+      .hint {
+        margin-top: 10px;
+        color: var(--sub);
+        font-size: 12px;
+        white-space: pre-line;
+      }
+
+      .notice {
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 12px;
+        display: none;
+      }
+
+      .notice.show {
+        display: block;
+      }
+
+      .select-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .select-row select {
+        width: 100%;
+      }
+
+      .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 8px 0;
+      }
+
+      .toggle-row label {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .setting {
+        margin: 10px 0;
+      }
+
+      .setting .meta {
+        display: flex;
+        justify-content: space-between;
+        color: var(--sub);
+        font-size: 12px;
+        margin-bottom: 3px;
+      }
+
+      .setting input[type='range'] {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1 class="title">Gesture Ops MVP</h1>
+
+      <section class="card">
+        <div class="row">
+          <span class="label">拡張機能ステータス</span>
+          <span id="extensionStatus" class="value">OFF</span>
+        </div>
+        <div class="row">
+          <span class="label">カメラ状態</span>
+          <span id="cameraStatus" class="value">未許可</span>
+        </div>
+        <div class="row">
+          <span class="label">手の認識状態</span>
+          <span id="handStatus" class="value">未検出</span>
+        </div>
+        <div class="row">
+          <span class="label">最終認識ジェスチャー</span>
+          <span id="lastGesture" class="value">NONE</span>
+        </div>
+      </section>
+
+      <button id="toggleButton" type="button">ONにする</button>
+
+      <p id="cameraNotice" class="notice">
+        カメラ未許可です。ON後にページ側のカメラ許可を与えてください。
+      </p>
+
+      <section class="card">
+        <h2 class="section-title">操作モード</h2>
+        <div class="select-row">
+          <select id="interactionModeSetting">
+            <option value="CURSOR_PINCH">仮想カーソル + ピンチ</option>
+            <option value="SWIPE">スワイプ（戻る/進む）</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <label for="cursorMirrorXSetting">カーソル左右反転補正</label>
+          <input id="cursorMirrorXSetting" type="checkbox" />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">スワイプ感度</h2>
+
+        <div class="setting">
+          <div class="meta"><span>角度許容 (deg)</span><span id="angleToleranceDegValue">0</span></div>
+          <input id="angleToleranceDegSetting" type="range" min="10" max="45" step="1" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>軸ロック比</span><span id="axisLockRatioValue">0</span></div>
+          <input id="axisLockRatioSetting" type="range" min="1" max="2" step="0.05" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>最小スワイプ距離</span><span id="minSwipeDistanceValue">0</span></div>
+          <input id="minSwipeDistanceSetting" type="range" min="0.08" max="0.3" step="0.01" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>横クールダウン (ms)</span><span id="horizontalCooldownMsValue">0</span></div>
+          <input id="horizontalCooldownMsSetting" type="range" min="300" max="2500" step="50" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>縦クールダウン (ms)</span><span id="verticalCooldownMsValue">0</span></div>
+          <input id="verticalCooldownMsSetting" type="range" min="500" max="3000" step="50" />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">カーソル / ピンチ</h2>
+
+        <div class="setting">
+          <div class="meta"><span>カーソル平滑化</span><span id="cursorSmoothingValue">0</span></div>
+          <input id="cursorSmoothingSetting" type="range" min="0.05" max="0.95" step="0.01" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>ピンチ開始閾値</span><span id="pinchStartRatioValue">0</span></div>
+          <input id="pinchStartRatioSetting" type="range" min="0.2" max="0.7" step="0.01" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>ピンチ終了閾値</span><span id="pinchEndRatioValue">0</span></div>
+          <input id="pinchEndRatioSetting" type="range" min="0.25" max="0.9" step="0.01" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>ピンチクールダウン (ms)</span><span id="pinchCooldownMsValue">0</span></div>
+          <input id="pinchCooldownMsSetting" type="range" min="100" max="2000" step="20" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>ドラッグスクロール倍率</span><span id="pinchDragScrollFactorValue">0</span></div>
+          <input id="pinchDragScrollFactorSetting" type="range" min="0.8" max="4.5" step="0.1" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>タップ判定 最大移動(px)</span><span id="pinchTapMaxMovePxValue">0</span></div>
+          <input id="pinchTapMaxMovePxSetting" type="range" min="4" max="80" step="1" />
+        </div>
+
+        <div class="setting">
+          <div class="meta"><span>タップ判定 最大時間(ms)</span><span id="pinchTapMaxDurationMsValue">0</span></div>
+          <input id="pinchTapMaxDurationMsSetting" type="range" min="80" max="600" step="10" />
+        </div>
+      </section>
+
+      <p class="hint">[スワイプモード]
+左→右：戻る / 右→左：進む
+上→下：上スクロール / 下→上：下スクロール
+
+[仮想カーソル+ピンチ]
+ピンチしながら移動：縦横スクロール
+短いピンチ：クリック</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
